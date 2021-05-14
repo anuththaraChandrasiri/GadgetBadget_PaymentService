@@ -20,6 +20,8 @@ public class Payment {
 						
 			//Providing correct details to connect : DBServer/DBName, user name, password
 			con = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/payment_service", "root", "");
+			
+			System.out.println("Successfully connected!");
 					
 		}catch (Exception e){
 							
@@ -74,7 +76,7 @@ public class Payment {
 				output += "<td>" + CVV + "</td>";
 				output += "<td>" + expDate + "</td>";
 				
-				// buttons
+				// button
 				output += "<td><input name='btnUpdate' type='button' value='Update' "
 				+ "class='btnUpdate btn btn-secondary' data-userid='" + userID + "'></td>";
 			}	
@@ -194,11 +196,14 @@ public class Payment {
 				//Executing the statement
 				preparedStmt.execute();
 				con.close();
-				output = "User payment details updated successfully";
+				
+				String newUserPaymentDetailsRecords = readPaymentDetails();			
+				
+				output = "{\"status\":\"success\", \"data\": \"" + newUserPaymentDetailsRecords + "\"}";
 			}
 			catch (Exception e)	{
 
-				output = "Error while updating the user payment details record.";
+				output = "{\"status\":\"error\", \"data\": \"Updating the user payment details record and got an error.\"}";
 				System.err.println(e.getMessage());
 			}			
 				
@@ -217,7 +222,6 @@ public class Payment {
 	public String readOrderPaymentDetails() {
 				
 		String output = "";
-		String success = "Success";
 			
 		try {
 				
@@ -228,13 +232,13 @@ public class Payment {
 					
 			//Preparing the HTML table, which is to be displayed
 			output = "<table border = '1'>"
-					+ "<tr><th>Order payment ID</th>"
-					+ "<th>Project ID</th>"
+					+ "<tr><th>Project ID</th>"
 					+ "<th>Order ID</th>"
 					+ "<th>Researcher ID</th>"
 					+ "<th>Amount</th>"
 					+ "<th>Payment status</th>"
-					+ "<th>Action</th><tr>";
+					+ "<th>Update</th>"
+					+ "<th>Remove</th><tr>";
 					
 			String query = "select * from order_payment";
 			Statement stmt = con.createStatement();
@@ -243,7 +247,7 @@ public class Payment {
 			//Iterate through the rows in the result set
 			while(rs.next()) {
 						
-				Integer orderPaymentID = rs.getInt("oPaymentId");
+				Integer oPaymentId = rs.getInt("oPaymentId");
 				Integer projectID = rs.getInt("pId");
 				Integer orderID = rs.getInt("orderId");
 				Integer researcherID = rs.getInt("researcherId");
@@ -251,26 +255,17 @@ public class Payment {
 				String paymentStatus = rs.getString("paymentStatus");
 						
 				// Add into the HTML table
-				output += "<tr><td>" +  orderPaymentID + "</td>";
-				output += "<td>" + projectID + "</td>";
+				output += "<tr><td>" + projectID + "</td>";
 				output += "<td>" + orderID + "</td>";
 				output += "<td>" + researcherID + "</td>";
 				output += "<td>" + orderAmount + "</td>";
 				output += "<td>" + paymentStatus + "</td>";
 						
-				//Displaying the relevant button
-				if(paymentStatus.equalsIgnoreCase(success)) {
-							
-					output += "<td><input name='btnPay' type='button' value='Pay       ' "
-							+ "class='btnUpdate btn btn-secondary' data-orderPaymentID='" + orderPaymentID + "'></td>";
-								
-				}
-				else {
-					
-					output += "<td><input name='btnRemove' type='button' value='Remove' "
-							+ "class='btnRemove btn btn-danger' data-orderPaymentID='" + orderPaymentID + "'></td></tr>";
-						
-				}
+				// buttons
+				output += "<td><input name='btnUpdate' type='button' value='Update' "
+				+ "class='btnUpdate btn btn-secondary' data-oid='" + oPaymentId + "'></td>"
+				+ "<td><input name='btnRemove' type='button' value='Remove' "
+				+ "class='btnRemove btn btn-danger' data-oid='" + oPaymentId + "'></td></tr>";				
 			}	
 						
 			con.close();
@@ -316,21 +311,68 @@ public class Payment {
 				
 			con.close();
 				
-			output = "Order payment record inserted successfully";
+			String newOrderPaymentDetailsRecords = readOrderPaymentDetails();			
+			
+			output = "{\"status\":\"success\", \"data\": \"" + newOrderPaymentDetailsRecords + "\"}";
+			
 		}
 		catch (Exception e){
 				
-			output = "Error while inserting the order payment record.";
+			output = "{\"status\":\"error\", \"data\": \"Error while inserting the item.\"}";
 			System.err.println(e.getMessage());
 		}
 			
 		return output;
 	}
+	
+	//Method to update a specific order payment detail record
+	public String updateOrderPaymentDetailsRecord(int orderPaymentId, int pId, int orderId, int researcherId, float amount, String paymentStatus) {
+					
+		String output = "";
+						
+		try {
+							
+			Connection con = connect();
+							
+			if (con == null) 
+				return "Error while connecting to the database for updating."; 
+							
+			// Creating a prepared statement
+			String query = "update order_payment set pId = ?, orderId = ?, researcherId = ?, amount = ?, paymentStatus = ? WHERE oPaymentId = ?";
+				
+			PreparedStatement preparedStmt = con.prepareStatement(query);
+							
+			// Binding values
+			preparedStmt.setInt(1, pId);
+			preparedStmt.setInt(2, orderId);
+			preparedStmt.setInt(3, researcherId);
+			preparedStmt.setFloat(4, amount);
+			preparedStmt.setString(5, paymentStatus);
+			preparedStmt.setInt(6, orderPaymentId);
+												
+			//Executing the statement
+			preparedStmt.execute();
+			con.close();
+					
+			String newOrderPaymentDetailsRecords = readOrderPaymentDetails();			
+					
+			output = "{\"status\":\"success\", \"data\": \"" + newOrderPaymentDetailsRecords + "\"}";
+				
+		}
+		catch (Exception e)	{
+
+			output = "{\"status\":\"error\", \"data\": \"Updating the order payment details record and got an error.\"}";
+			System.err.println(e.getMessage());
+		}			
+		
+		return output;
+	}			
 		
 	//Method to delete an Order payment details record
-	public String deleteOrderPaymentRecord(int orderPaymentId){
+	public String deleteOrderPaymentRecord(String orderPaymentID){
 			
 		String output = "";
+		int orderPaymentId = Integer.parseInt(orderPaymentID);
 			
 		try	{
 				
@@ -352,8 +394,11 @@ public class Payment {
 			// execute the statement
 			preparedStmt.execute();
 			con.close();
-				
-			output = "Order payment record deleted successfully";
+			
+			String newOrderPaymentDetailsRecords = readOrderPaymentDetails();			
+			
+			output = "{\"status\":\"success\", \"data\": \"" + newOrderPaymentDetailsRecords + "\"}";
+			
 		}
 		catch (Exception e)
 		{
