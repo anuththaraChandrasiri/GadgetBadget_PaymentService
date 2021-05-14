@@ -49,7 +49,8 @@ public class Payment {
 					+ "<th>Name</th>"
 					+ "<th>Card number</th>"
 					+ "<th>CVV</th>"
-					+ "<th>Expiration date</th><tr>";
+					+ "<th>Expiration date</th>"
+					+ "<th>Update</th><tr>";
 					
 			String query = "select userId, firstName, lastName, cardNumber, CVV, expDate from user";
 			Statement stmt = con.createStatement();
@@ -72,6 +73,10 @@ public class Payment {
 				output += "<td>" + cardNumber + "</td>";
 				output += "<td>" + CVV + "</td>";
 				output += "<td>" + expDate + "</td>";
+				
+				// buttons
+				output += "<td><input name='btnUpdate' type='button' value='Update' "
+				+ "class='btnUpdate btn btn-secondary' data-userid='" + userID + "'></td>";
 			}	
 							
 		con.close();
@@ -107,7 +112,8 @@ public class Payment {
 					+ "<th>Card number</th>"
 					+ "<th>CVV</th>"
 					+ "<th>Expiration date</th>"
-					+ "<th>Action</th><tr>";
+					+ "<th>Update</th>"
+					+ "<th>Confirm</th><tr>";
 						
 			String query = "select userId, firstName, lastName, cardNumber, CVV, expDate from user where userId = " + userId;
 				
@@ -132,8 +138,10 @@ public class Payment {
 				output += "<td>" + expDate + "</td>";
 								
 				//Displaying the buttons
-				output += "<td><input name = 'btnUpdate' type = 'button' value = 'Update'>";
-				output += "<input name = 'btnConfirm' type = 'button' value = 'Confirm'></td>";
+				//Displaying the buttons
+				output += "<td><input name='btnUpdate' type='button' value='Update' "
+				+ "class='btnUpdate btn btn-secondary' data-userid='" + userID + "'></td>"
+				+ "<input name = 'btnConfirm' type = 'button' value = 'Confirm'></td>";
 							
 			}	
 								
@@ -253,12 +261,14 @@ public class Payment {
 				//Displaying the relevant button
 				if(paymentStatus.equalsIgnoreCase(success)) {
 							
-					output += "<td><input name = 'btnPay' type = 'button' value = 'Pay   '></td>";
+					output += "<td><input name='btnPay' type='button' value='Pay       ' "
+							+ "class='btnUpdate btn btn-secondary' data-orderPaymentID='" + orderPaymentID + "'></td>";
 								
 				}
 				else {
-							
-					output += "<td><input name = 'btnDelete' type = 'button' value = 'Delete'></td>";
+					
+					output += "<td><input name='btnRemove' type='button' value='Remove' "
+							+ "class='btnRemove btn btn-danger' data-orderPaymentID='" + orderPaymentID + "'></td></tr>";
 						
 				}
 			}	
@@ -402,13 +412,15 @@ public class Payment {
 							
 				//Displaying the relevant button
 				if(paymentStatus.equalsIgnoreCase(success)) {
-							
-					output += "<td><input name = 'btnPay' type = 'button' value = 'Pay   '></td>";
-									
+					
+					output += "<td><input name='btnPay' type='button' value='Pay       ' "
+							+ "class='btnUpdate btn btn-secondary' data-fundPaymentID='" + fundPaymentID + "'></td>";
+								
 				}
 				else {
-							
-					output += "<td><input name = 'btnDelete' type = 'button' value = 'Delete'></td>";
+					
+					output += "<td><input name='btnRemove' type='button' value='Remove' "
+							+ "class='btnRemove btn btn-danger' data-fundPaymentID='" + fundPaymentID + "'></td></tr>";
 						
 				}
 			}	
@@ -550,7 +562,8 @@ public class Payment {
 				}
 				else {
 								
-					output += "<td><input name = 'btnDelete' type = 'button' value = 'Delete'></td>";
+					output += "<td><input name='btnRemove' type='button' value='Remove' "
+							+ "class='btnRemove btn btn-danger' data-researcherPaymentID='" + researcherPaymentID + "'></td></tr>";
 							
 				}
 			}	
